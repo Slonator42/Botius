@@ -11,3 +11,6 @@ After configuring your details, you can check by using the following command. gi
    https://www.geeksforgeeks.org/how-to-add-git-credentials-in-vscode/
 
    https://www.pyblog.ru/post/exportxlssql/
+
+
+   https://pythonru.com/biblioteki/poluchenie-dannyh-iz-tablicy-sqlite

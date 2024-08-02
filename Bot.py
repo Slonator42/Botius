@@ -15,18 +15,24 @@ cursor = connect.cursor()
 sqlite_select_query = """SELECT * from People"""
 cursor.execute(sqlite_select_query)
 records = cursor.fetchall()
+
+
 #print(records)
 #print("Всего строк:  ", len(records))
 #print("Вывод каждой строки")
+#date = "13.11"
 
 for row in records:
+    have_a_birthday = 0
     #print("Имя:", row[0])
     #print("Дата:", row[1])
     birthday = row[1][:5]
     #print(birthday)
     if birthday == date:
-        print(row[0]) # почему-то выводится дважды 
-
+        print(row[0])
+        have_a_birthday = 1 
+if have_a_birthday == 0:
+    print('Сегодня дней рождений нет :(')
 
 # закрытие базы
 cursor.close()
