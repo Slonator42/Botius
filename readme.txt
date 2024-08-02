@@ -9,3 +9,5 @@ After configuring your details, you can check by using the following command. gi
    4) Клонировать репозиторий с проектом
    5) При работе с проектом, синхронизировать его с Git
    https://www.geeksforgeeks.org/how-to-add-git-credentials-in-vscode/
+
+   https://www.pyblog.ru/post/exportxlssql/
