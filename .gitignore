@@ -3,3 +3,6 @@ People.xlsx
 People.sqlite3
 Database.py
 database.db
+.venv
+.env
+.vscode
