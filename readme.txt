@@ -17,3 +17,22 @@ After configuring your details, you can check by using the following command. gi
 
 
    https://pythonru.com/biblioteki/poluchenie-dannyh-iz-tablicy-sqlite
+
+
+
+   
+# def send_welcome(message):
+#     # Создаем клавиатуру
+#     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+#     start_button = types.KeyboardButton("Старт")
+#     keyboard.add(start_button)
+
+#     # Отправляем приветственное сообщение с кнопкой
+#     bot.send_message(message.chat.id, "Добро пожаловать! Нажмите 'Старт' для продолжения.", reply_markup=keyboard)
+
+# @bot.message_handler(func=lambda message: True)
+# def handle_message(message):
+#     if message.text == "Старт":
+#         bot.send_message(message.chat.id, "Вы нажали кнопку 'Старт'. Бот готов к работе!")
+#     else:
+#         bot.send_message(message.chat.id, "Пожалуйста, нажмите 'Старт' для начала.")
