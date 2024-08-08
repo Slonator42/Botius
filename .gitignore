@@ -5,9 +5,5 @@ Database.py
 database.db
 .venv
 .env
-<<<<<<< HEAD
 .vscode
 env/
-=======
-.vscode
->>>>>>> a8f7a812cf2646e0d540d3b241fec867fefd2c46
