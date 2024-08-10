@@ -9,3 +9,4 @@ setuptools==72.1.0
 telebot==0.0.5
 urllib3==2.2.2
 zope.interface==7.0.1
+python-dotenv==1.0.1

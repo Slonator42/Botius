@@ -2,10 +2,13 @@ import os
 import sqlite3
 from datetime import datetime
 
+from dotenv import load_dotenv
+
 import telebot
 from telebot import types
 
 TOKEN = os.getenv("TOKEN")
+print(f"Token: {TOKEN}") 
 
 if isinstance(TOKEN, str):
     bot = telebot.TeleBot(TOKEN)
