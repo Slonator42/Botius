@@ -1,9 +1,16 @@
 services:
   botius:
-    container_name: telegram-bot
     image: botius
+    container_name: telegram-bot
+    restart: unless-stopped
     build:
       context: .
       dockerfile: ./Dockerfile
     ports:
       - 8000:8000
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    environment:
+    - TOKEN=${TOKEN:?not set telegram token in .env}

@@ -6,11 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYDEVD_DISABLE_FILE_VALIDATION=1
 
-
 COPY requirements.txt .
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app
+COPY . /app
 
 EXPOSE 8000
 
