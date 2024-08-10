@@ -12,6 +12,7 @@ if isinstance(TOKEN, str):
 else:
     print("Токен не найден")
 
+
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
     # Добавляем две кнопки
@@ -24,7 +25,8 @@ def start(m, res=False):
         reply_markup=markup,
     )
 
-@bot.message_handler(content_types=["text"])    
+
+@bot.message_handler(content_types=["text"])
 def handle_text(message):
     if message.text.strip() == "Запрос":
         # Узнаем текущую дату и месяц
@@ -53,12 +55,18 @@ def handle_text(message):
 
         if count_people > 0:
             # Формируем сообщение с именами, каждое с новой строки и с нумерацией
-            names_with_numbers = "\n".join(f"{i + 1}. {name}" for i, name in enumerate(birthday_list))
-            bot.send_message(message.chat.id, f"Сегодня дней рождений {count_people}:\n{names_with_numbers}")
+            names_with_numbers = "\n".join(
+                f"{i + 1}. {name}" for i, name in enumerate(birthday_list)
+            )
+            bot.send_message(
+                message.chat.id,
+                f"Сегодня дней рождений {count_people}:\n{names_with_numbers}",
+            )
         else:
             bot.send_message(message.chat.id, "Сегодня дней рождений нет :(")
 
         # Закрытие базы
         cursor.close()
+
 
 bot.polling(none_stop=True)
