@@ -24,7 +24,7 @@ def start(m, res=False):
         reply_markup=markup,
     )
 
-@bot.message_handler(content_types=["text"])
+@bot.message_handler(content_types=["text"])    
 def handle_text(message):
     if message.text.strip() == "Запрос":
         # Узнаем текущую дату и месяц
