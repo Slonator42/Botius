@@ -14,4 +14,4 @@ COPY . /app
 
 EXPOSE 8000
 
-CMD ["python", "__main__.py"]
+CMD ["python", "main.py"]
