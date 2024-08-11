@@ -1,6 +1,7 @@
 import os
 import sqlite3
 from datetime import datetime
+import random
 
 import telebot
 from telebot import types
@@ -8,22 +9,34 @@ from telebot import types
 TOKEN = os.getenv("TOKEN")
 if TOKEN is not None:
     bot = telebot.TeleBot(TOKEN)
-if isinstance(TOKEN, str):
-    bot = telebot.TeleBot(TOKEN)
 else:
     raise ValueError("Токен не найден")
 
+# Список поздравлений
+congratulations = [
+    "Поздравляем с днем рождения! Желаем здоровья, удачи, любви, везения, мира, добра, улыбок, благополучия. Пусть все мечты исполняются. Пусть жизнь будет долгой и гладкой, полной ярких и запоминающихся событий!",
+    "Хочу пожелать тебе не просто благополучия и хорошей жизни, а еще и удачного стечения обстоятельств. Чтобы достижениями своими ты мог гордиться. Живи ярко и улыбайся каждый день!",
+    "С днем рождения! Желаю добра, света, мира, улыбок, отличного настроения. Пусть всё плохое обходит стороной, жизненные невзгоды преодолеваются с легкостью, а каждый день будет наполнен радостью и счастьем. И конечно, светлой веры, огромной надежды, бесконечной любви.",
+    "В день рождения желаю легкости чувств, душевной бодрости, ясности мыслей и ярких позитивных ощущений. Пусть жизненная энергия поможет достичь самых невероятных замыслов.",
+    "Поздравляю с днем рождения! Пусть счастье сопровождает вас на каждом пути, здоровье оберегает при любых обстоятельствах. Удача и везение станут вашим надежным спутником по жизни. Желаю вдохновения во всем, позитивного настроения и исполнения всех планов."
+    "Желаю здоровья и хорошего настроения, всех благ и удовольствий жизни, благополучия и домашнего уюта, любви и человеческого счастья!"
+    "Пусть в твой день рождения все будет необыкновенным и замечательным, словно в волшебных сказках, случаются чудеса, а счастье будет прекрасном, как радуга!"
+    "Желаю самые приятные минуты жизни разделить с любимым человеком, радоваться мгновениям волшебного счастья, быть желанным и нужным в любой компании!"
+    "Пусть свет счастливой звезды ведет тебя навстречу радостным и интересным событиям, радужным надеждам и мечтам, к успеху и процветанию!"
+    "Желаем уютной атмосферы в доме, любви и теплоты в отношениях, уважения и доверия в коллективе, счастливых и радостных лет жизни!"
+    "Пусть добрый художник раскрашивает твою жизнь лишь светлыми красками, а дни приносят впечатления, которые хочется вспоминать. С днем рождения!"
+]
 
 @bot.message_handler(commands=["start"])
 def handle_start_command(message):
-    # Добавляем две кнопки
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    # Добавляем кнопки "Запрос" и "Получить поздравление"
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
     query_button = types.KeyboardButton("Запрос")
-    keyboard.add(query_button)
+    congratulation_button = types.KeyboardButton("Получить идею для поздравления")
+    keyboard.add(query_button, congratulation_button)
 
-    welcome_message = "Привет! Нажмите кнопку «Запрос» для получения информации о днях рождениях на сегодня."
+    welcome_message = "Привет! Выберите действие:"
     bot.send_message(message.chat.id, welcome_message, reply_markup=keyboard)
-
 
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
@@ -73,5 +86,19 @@ def handle_text(message):
         cursor.close()
         connection.close()
 
+    elif query_text == "Получить идею для поздравления":
+        # Выбираем случайное поздравление из списка
+        random_congratulation = random.choice(congratulations)
+        
+        # Отправляем поздравление пользователю
+        bot.send_message(message.chat.id, random_congratulation)
+
+    # После обработки текста отправляем клавиатуру снова без дополнительного сообщения
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
+    query_button = types.KeyboardButton("Запрос")
+    congratulation_button = types.KeyboardButton("Получить идею для поздравления")
+    keyboard.add(query_button, congratulation_button)
+    
+    bot.send_message(message.chat.id, " ", reply_markup=keyboard)  # Пустое сообщение для отображения клавиатуры
 
 bot.polling(none_stop=True)
