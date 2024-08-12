@@ -5,3 +5,4 @@ Database.py
 database.db
 .venv
 .env
+debug.env

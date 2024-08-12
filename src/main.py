@@ -1,7 +1,7 @@
 import os
+import random
 import sqlite3
 from datetime import datetime
-import random
 
 import telebot
 from telebot import types
@@ -24,8 +24,9 @@ congratulations = [
     "Желаю самые приятные минуты жизни разделить с любимым человеком, радоваться мгновениям волшебного счастья, быть желанным и нужным в любой компании!"
     "Пусть свет счастливой звезды ведет тебя навстречу радостным и интересным событиям, радужным надеждам и мечтам, к успеху и процветанию!"
     "Желаем уютной атмосферы в доме, любви и теплоты в отношениях, уважения и доверия в коллективе, счастливых и радостных лет жизни!"
-    "Пусть добрый художник раскрашивает твою жизнь лишь светлыми красками, а дни приносят впечатления, которые хочется вспоминать. С днем рождения!"
+    "Пусть добрый художник раскрашивает твою жизнь лишь светлыми красками, а дни приносят впечатления, которые хочется вспоминать. С днем рождения!",
 ]
+
 
 @bot.message_handler(commands=["start"])
 def handle_start_command(message):
@@ -37,6 +38,7 @@ def handle_start_command(message):
 
     welcome_message = "Привет! Выберите действие:"
     bot.send_message(message.chat.id, welcome_message, reply_markup=keyboard)
+
 
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
@@ -89,7 +91,7 @@ def handle_text(message):
     elif query_text == "Получить идею для поздравления":
         # Выбираем случайное поздравление из списка
         random_congratulation = random.choice(congratulations)
-        
+
         # Отправляем поздравление пользователю
         bot.send_message(message.chat.id, random_congratulation)
 
@@ -98,7 +100,10 @@ def handle_text(message):
     query_button = types.KeyboardButton("Запрос")
     congratulation_button = types.KeyboardButton("Получить идею для поздравления")
     keyboard.add(query_button, congratulation_button)
-    
-    bot.send_message(message.chat.id, " ", reply_markup=keyboard)  # Пустое сообщение для отображения клавиатуры
+
+    bot.send_message(
+        message.chat.id, " ", reply_markup=keyboard
+    )  # Пустое сообщение для отображения клавиатуры
+
 
 bot.polling(none_stop=True)
