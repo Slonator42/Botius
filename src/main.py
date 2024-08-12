@@ -1,19 +1,20 @@
+import asyncio
 import os
 import random
 import sqlite3
 from datetime import datetime
 
 import openpyxl
-import telebot
 from telebot import types
+from telebot.async_telebot import AsyncTeleBot
 
-TOKEN = os.getenv("TOKEN")
-if TOKEN is not None:
-    bot = telebot.TeleBot(TOKEN)
-else:
+TOKEN = os.environ.get("TOKEN")
+
+if not TOKEN:
     raise ValueError("Токен не найден")
 
-# Список поздравлений
+bot = AsyncTeleBot(TOKEN)
+
 congratulations = [
     "Поздравляем с днем рождения! Желаем здоровья, удачи, любви, везения, мира, добра, улыбок, благополучия. Пусть все мечты исполняются. Пусть жизнь будет долгой и гладкой, полной ярких и запоминающихся событий!",
     "Хочу пожелать тебе не просто благополучия и хорошей жизни, а еще и удачного стечения обстоятельств. Чтобы достижениями своими ты мог гордиться. Живи ярко и улыбайся каждый день!",
@@ -30,148 +31,130 @@ congratulations = [
 
 
 @bot.message_handler(commands=["start"])
-def handle_start_command(message):
-    # Добавляем кнопки "Запрос" и "Получить поздравление"
+async def handle_start_command(message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
-    query_button = types.KeyboardButton("Запрос")
-    congratulation_button = types.KeyboardButton("Получить идею для поздравления")
-    Database_Button = types.KeyboardButton("Создать базу данных")
-    keyboard.add(query_button, congratulation_button, Database_Button)
-
-    welcome_message = "Привет! Выберите действие:"
-    bot.send_message(message.chat.id, welcome_message, reply_markup=keyboard)
+    keyboard.add(
+        types.KeyboardButton("Запрос"),
+        types.KeyboardButton("Получить идею для поздравления"),
+        types.KeyboardButton("Создать базу данных"),
+        types.KeyboardButton(
+            "Отправить файл Excel"
+        ),  # Добавлена кнопка "Отправить файл Excel"
+    )
+    await bot.send_message(
+        message.chat.id, "Привет! Выберите действие:", reply_markup=keyboard
+    )
 
 
 @bot.message_handler(content_types=["text"])
-def handle_text(message):
-    query_text = message.text.strip()
+async def handle_text(message):
+    text = message.text.strip()
 
-    if query_text == "Запрос":
-        # Узнаем текущую дату и месяц
-        current_date = datetime.now().strftime("%d.%m")
+    if text == "Запрос":
+        await handle_birthday_request(message)
 
-        # Обращаемся к базе данных и создаем курсор
-        project_directory = os.getcwd()
-        database_name = "People.sqlite3"
-        database_path = os.path.join(project_directory, database_name)
+    elif text == "Получить идею для поздравления":
+        congratulation = random.choice(congratulations)
+        await bot.send_message(message.chat.id, congratulation)
 
-        connection = sqlite3.connect(database_path)
-        cursor = connection.cursor()
+    elif text == "Создать базу данных":
+        await create_database_table()
+        await clear_database(message)
+        await bot.send_message(message.chat.id, "База данных успешно создана!")
 
-        # Чтение данных
-        select_query = "SELECT * FROM People"
+    elif text == "Отправить файл Excel":
+        await bot.send_message(message.chat.id, "Пожалуйста, отправьте файл Excel.")
+
+
+@bot.message_handler(content_types=["document"])
+async def handle_document(message):
+    if (
+        message.document.mime_type
+        == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ):
+        await export_to_sqlite(message)
+        await bot.send_message(
+            message.chat.id,
+            "Файл Excel успешно обработан и данные добавлены в базу данных.",
+        )
+    else:
+        await bot.send_message(
+            message.chat.id, "Пожалуйста, отправьте файл в формате Excel."
+        )
+
+
+async def handle_birthday_request(message):
+    current_date = datetime.now().strftime("%d.%m")
+    database_path = os.path.join(os.getcwd(), "People.sqlite3")
+    connection = sqlite3.connect(database_path)
+    cursor = connection.cursor()
+    select_query = "SELECT * FROM People"
+
+    try:
         cursor.execute(select_query)
-
         records = cursor.fetchall()
+    except sqlite3.OperationalError:
+        await bot.send_message(message.chat.id, "База данных пуста")
+        return
 
-        count_people = 0
-        birthday_names = []
+    birthday_names = [record[0] for record in records if record[1][:5] == current_date]
 
-        # Бот проверяет, есть ли день рождения
-        for record in records:
-            birthday = record[1][:5]
-            if birthday == current_date:
-                count_people += 1
-                birthday_names.append(record[0])
-
-        if count_people > 0:
-            # Формируем сообщение с именами, каждое с новой строки и с нумерацией
-            birthday_message = "\n".join(
-                f"{index + 1}. {name}" for index, name in enumerate(birthday_names)
-            )
-            bot.send_message(
-                message.chat.id,
-                f"Сегодня дней рождений {count_people}:\n{birthday_message}",
-            )
-        else:
-            bot.send_message(message.chat.id, "Сегодня дней рождений нет :(")
-
-        # Закрытие базы
-        cursor.close()
-        connection.close()
-
-    elif query_text == "Получить идею для поздравления":
-        # Выбираем случайное поздравление из списка
-        random_congratulation = random.choice(congratulations)
-
-        # Отправляем поздравление пользователю
-        bot.send_message(message.chat.id, random_congratulation)
-
-    elif query_text == "Создать базу данных":
-
-        def export_to_sqlite():
-            # получаем путь к проекту
-            prj_dir = os.path.abspath(os.path.curdir)
-
-            # ЧТО ДЕЛАЕТ СТРОЧКА С БУКВОЙ a???
-            # a = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-            # Создание базы данных и подключение к ней
-            base_name = "People.sqlite3"
-
-            connect = sqlite3.connect(prj_dir + "/" + base_name)
-
-            # создание курсора
-            cursor = connect.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS People (Name text, Date text)")
-            # Чтение файла книги Excel и Лист1
-            file_to_read = openpyxl.load_workbook("People.xlsx", data_only=True)
-            sheet = file_to_read["Лист1"]
-
-            for row in range(1, sheet.max_row + 1):
-                # Объявление списка
-                data = []
-                # Цикл по столбцам от 1 до 4 ( 5 не включая)
-                for col in range(1, 3):
-                    # value содержит значение ячейки с координатами row col
-                    value = sheet.cell(row, col).value
-                    # Список который мы потом будем добавлять
-                    data.append(value)
-                print(data)
-                # Запись в базу и закрытие соединения
-                # Вставка данных в поля таблицы
-                cursor.execute("INSERT INTO People VALUES (?, ?);", (data[0], data[1]))
-
-            # сохраняем изменения
-            connect.commit()
-            # закрытие соединения
-            connect.close()
-
-        def clear_base():
-            """Очистка базы sqlite"""
-
-            # получаем путь к проекту
-            prj_dir = os.path.abspath(os.path.curdir)
-
-            # Создание базы данных и подключение к ней
-            base_name = "People.sqlite3"
-
-            connect = sqlite3.connect(prj_dir + "/" + base_name)
-
-            # создание курсора
-            cursor = connect.cursor()
-
-            # Запись в базу, сохранение и закрытие соединения
-            cursor.execute("DELETE FROM People")
-            # сохраняем изменения
-            connect.commit()
-            # закрытие соединения
-            connect.close()
-
-        # вызов функции
-        clear_base()
-        export_to_sqlite()
-        bot.send_message(message.chat.id, "База данных успешно создана!")
-
-    # После обработки текста отправляем клавиатуру снова без дополнительного сообщения
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
-    query_button = types.KeyboardButton("Запрос")
-    congratulation_button = types.KeyboardButton("Получить идею для поздравления")
-    keyboard.add(query_button, congratulation_button)
-
-    bot.send_message(
-        message.chat.id, " ", reply_markup=keyboard
-    )  # Пустое сообщение для отображения клавиатуры
+    if birthday_names:
+        birthday_message = "\n".join(
+            f"{index + 1}. {name}" for index, name in enumerate(birthday_names)
+        )
+        await bot.send_message(
+            message.chat.id,
+            f"Сегодня дней рождений {len(birthday_names)}:\n{birthday_message}",
+        )
+    else:
+        await bot.send_message(message.chat.id, "Сегодня дней рождений нет :(")
 
 
-bot.polling(none_stop=True)
+async def create_database_table():
+    database_path = os.path.join(os.getcwd(), "People.sqlite3")
+    connection = sqlite3.connect(database_path)
+    cursor = connection.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS People (name text, date text)")
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+async def clear_database(message: types.Message):
+    database_path = os.path.join(os.getcwd(), "People.sqlite3")
+    connection = sqlite3.connect(database_path)
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM People")
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+async def export_to_sqlite(message: types.Message):
+    database_path = os.path.join(os.getcwd(), "People.sqlite3")
+    connection = sqlite3.connect(database_path)
+    cursor = connection.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS People (name text, date text)")
+
+    file_info = await bot.get_file(message.document.file_id)
+    file_path = file_info.file_path
+    downloaded_file = await bot.download_file(file_path)
+
+    with open("temp.xlsx", "wb") as new_file:
+        new_file.write(downloaded_file)
+
+    workbook = openpyxl.load_workbook("temp.xlsx", data_only=True)
+    sheet = workbook.active
+    for row in range(1, sheet.max_row + 1):
+        name = sheet.cell(row, 1).value
+        date = sheet.cell(row, 2).value
+        cursor.execute("INSERT INTO People VALUES (?, ?);", (name, date))
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+    os.remove("temp.xlsx")
+
+
+asyncio.run(bot.polling(non_stop=True))

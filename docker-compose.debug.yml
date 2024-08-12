@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: ./backend.debug.Dockerfile
     command: >
-      sh -c "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 main.py"
+      sh -c "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 /app/src/main.py"
     ports:
       - ${PORT:?not set port in .env}:8000
       - 5678:5678
