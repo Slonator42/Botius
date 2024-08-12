@@ -2,7 +2,7 @@ import os
 import sqlite3
 from datetime import datetime
 import random
-
+import openpyxl
 import telebot
 from telebot import types
 
@@ -33,7 +33,8 @@ def handle_start_command(message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
     query_button = types.KeyboardButton("Запрос")
     congratulation_button = types.KeyboardButton("Получить идею для поздравления")
-    keyboard.add(query_button, congratulation_button)
+    Database_Button = types.KeyboardButton("Создать базу данных")
+    keyboard.add(query_button, congratulation_button, Database_Button)
 
     welcome_message = "Привет! Выберите действие:"
     bot.send_message(message.chat.id, welcome_message, reply_markup=keyboard)
@@ -92,6 +93,71 @@ def handle_text(message):
         
         # Отправляем поздравление пользователю
         bot.send_message(message.chat.id, random_congratulation)
+
+    elif query_text == "Создать базу данных":
+        def export_to_sqlite():
+            # получаем путь к проекту
+            prj_dir = os.path.abspath(os.path.curdir)
+
+            # ЧТО ДЕЛАЕТ СТРОЧКА С БУКВОЙ a???
+            #a = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
+            
+            #Создание базы данных и подключение к ней
+            base_name = 'People.sqlite3'
+
+            connect = sqlite3.connect(prj_dir + '/' + base_name)
+
+            #создание курсора
+            cursor = connect.cursor()
+            cursor.execute('CREATE TABLE IF NOT EXISTS People (Name text, Date text)')
+            #Чтение файла книги Excel и Лист1
+            file_to_read = openpyxl.load_workbook('People.xlsx', data_only=True)
+            sheet = file_to_read['Лист1']
+
+            for row in range(1, sheet.max_row + 1):
+                # Объявление списка
+                data = []
+                # Цикл по столбцам от 1 до 4 ( 5 не включая)
+                for col in range(1, 3):
+                    # value содержит значение ячейки с координатами row col
+                    value = sheet.cell(row, col).value
+                    # Список который мы потом будем добавлять
+                    data.append(value)
+                print(data)
+                # Запись в базу и закрытие соединения
+                # Вставка данных в поля таблицы
+                cursor.execute("INSERT INTO People VALUES (?, ?);", (data[0], data[1]))
+
+            # сохраняем изменения
+            connect.commit()
+            # закрытие соединения
+            connect.close()
+
+        def clear_base():
+            '''Очистка базы sqlite'''
+
+        # получаем путь к проекту
+            prj_dir = os.path.abspath(os.path.curdir)
+            
+            #Создание базы данных и подключение к ней
+            base_name = 'People.sqlite3'
+
+            connect = sqlite3.connect(prj_dir + '/' + base_name)
+
+            #создание курсора
+            cursor = connect.cursor()
+
+            # Запись в базу, сохранение и закрытие соединения
+            cursor.execute("DELETE FROM People")
+            # сохраняем изменения
+            connect.commit()
+            # закрытие соединения
+            connect.close()
+
+        # вызов функции
+        clear_base()
+        export_to_sqlite()
+        bot.send_message(message.chat.id, "База данных успешно создана!")
 
     # После обработки текста отправляем клавиатуру снова без дополнительного сообщения
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
