@@ -2,12 +2,8 @@ import os
 import random
 import sqlite3
 from datetime import datetime
-<<<<<<< HEAD:main.py
-import random
-import openpyxl
-=======
 
->>>>>>> 8ec2298f4c2ae7534ca8314861ca5e89d874a381:src/main.py
+import openpyxl
 import telebot
 from telebot import types
 
@@ -102,24 +98,25 @@ def handle_text(message):
         bot.send_message(message.chat.id, random_congratulation)
 
     elif query_text == "Создать базу данных":
+
         def export_to_sqlite():
             # получаем путь к проекту
             prj_dir = os.path.abspath(os.path.curdir)
 
             # ЧТО ДЕЛАЕТ СТРОЧКА С БУКВОЙ a???
-            #a = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
-            
-            #Создание базы данных и подключение к ней
-            base_name = 'People.sqlite3'
+            # a = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-            connect = sqlite3.connect(prj_dir + '/' + base_name)
+            # Создание базы данных и подключение к ней
+            base_name = "People.sqlite3"
 
-            #создание курсора
+            connect = sqlite3.connect(prj_dir + "/" + base_name)
+
+            # создание курсора
             cursor = connect.cursor()
-            cursor.execute('CREATE TABLE IF NOT EXISTS People (Name text, Date text)')
-            #Чтение файла книги Excel и Лист1
-            file_to_read = openpyxl.load_workbook('People.xlsx', data_only=True)
-            sheet = file_to_read['Лист1']
+            cursor.execute("CREATE TABLE IF NOT EXISTS People (Name text, Date text)")
+            # Чтение файла книги Excel и Лист1
+            file_to_read = openpyxl.load_workbook("People.xlsx", data_only=True)
+            sheet = file_to_read["Лист1"]
 
             for row in range(1, sheet.max_row + 1):
                 # Объявление списка
@@ -141,17 +138,17 @@ def handle_text(message):
             connect.close()
 
         def clear_base():
-            '''Очистка базы sqlite'''
+            """Очистка базы sqlite"""
 
-        # получаем путь к проекту
+            # получаем путь к проекту
             prj_dir = os.path.abspath(os.path.curdir)
-            
-            #Создание базы данных и подключение к ней
-            base_name = 'People.sqlite3'
 
-            connect = sqlite3.connect(prj_dir + '/' + base_name)
+            # Создание базы данных и подключение к ней
+            base_name = "People.sqlite3"
 
-            #создание курсора
+            connect = sqlite3.connect(prj_dir + "/" + base_name)
+
+            # создание курсора
             cursor = connect.cursor()
 
             # Запись в базу, сохранение и закрытие соединения
