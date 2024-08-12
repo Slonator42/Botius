@@ -1,7 +1,7 @@
 services:
-  botius:
-    image: botius
-    container_name: telegram-bot-debug
+  birthday-bot:
+    image: birthday-bot
+    container_name: birthday-bot-debug
     restart: unless-stopped
     build:
       context: .
@@ -9,11 +9,11 @@ services:
     command: >
       sh -c "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 main.py"
     ports:
-      - "8000:8000"
-      - "5678:5678"
+      - ${PORT:?not set port in .env}:8000
+      - 5678:5678
     env_file:
-      - .env
+      - debug.env
     volumes:
-      - ./:/app 
+      - ./src:/app/src
     environment:
       - TOKEN=${TOKEN:?not set telegram token in .env}

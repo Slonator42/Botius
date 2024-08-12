@@ -10,8 +10,8 @@ COPY requirements.txt .
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app
-COPY . /app
+COPY ./src /app/src
 
 EXPOSE 8000
 
-CMD ["python", "main.py"]
+CMD ["python", "src/main.py"]
